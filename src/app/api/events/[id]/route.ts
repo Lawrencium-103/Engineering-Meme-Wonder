@@ -38,6 +38,7 @@ const flyerSchema = z
       .optional()
       .default([]),
     templateId: z.string().trim().max(20).optional().default(""),
+    nameFont: z.string().trim().max(40).optional().default(""),
   })
   .optional();
 

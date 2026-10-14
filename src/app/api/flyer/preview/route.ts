@@ -39,6 +39,7 @@ const bodySchema = z.object({
     scripture: z.string().max(400).optional(),
     closingMessage: z.string().max(160).optional(),
     rsvpContacts: z.array(z.object({ name: z.string().max(80), phone: z.string().max(40) })).max(6).optional(),
+    nameFont: z.string().max(40).optional(),
   }),
   ceremonies: z
     .array(

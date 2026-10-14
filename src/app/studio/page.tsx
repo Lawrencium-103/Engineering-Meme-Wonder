@@ -867,6 +867,7 @@ function draftFromServer(data: {
       scripture?: string;
       rsvpContacts?: Array<{ name: string; phone: string }>;
       templateId?: string;
+      nameFont?: string;
     } | null;
   };
   ceremonies: Array<{

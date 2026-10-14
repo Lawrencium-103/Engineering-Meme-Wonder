@@ -90,6 +90,7 @@ export const events = pgTable(
       closingMessage?: string;
       rsvpContacts?: Array<{ name: string; phone: string }>;
       templateId?: string;
+      nameFont?: string;
     }>(),
     heroImageUrl: text("hero_image_url"),
     groomSignatureUrl: text("groom_signature_url"),
