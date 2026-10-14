@@ -1,7 +1,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# Dev-only embedded Postgres is Windows-only; never needed in the image.
+RUN npm pkg delete devDependencies.@embedded-postgres/windows-x64 devDependencies.embedded-postgres && npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
