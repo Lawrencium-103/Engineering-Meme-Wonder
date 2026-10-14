@@ -44,7 +44,7 @@ export default function LandingPage() {
             href="/"
             className="text-[0.68rem] font-light uppercase tracking-[0.42em] text-alabaster"
           >
-            Aura<span className="text-gold">Vows</span>
+            Aravow
           </Link>
           <div className="flex items-center gap-5">
             <Link
