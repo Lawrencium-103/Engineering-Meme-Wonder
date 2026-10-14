@@ -1,0 +1,25 @@
+node_modules
+.next
+out
+.env
+.env.local
+.env.production
+*.tsbuildinfo
+next-env.d.ts
+.pgdata
+dev-server.log
+dev-db.log
+prod-server.log
+public/uploads
+public/passes
+# Local dev noise — never push
+*.log
+*.err
+.DS_Store
+guest-personal.png
+qa-landing.png
+.e2e/
+.dev-server.log
+# Local font drops that aren't part of the build
+public/fonts/Cinzel-Variable.ttf
+

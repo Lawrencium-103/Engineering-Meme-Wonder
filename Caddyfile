@@ -1,0 +1,3 @@
+aravow.org, www.aravow.org {
+	reverse_proxy web:3000
+}

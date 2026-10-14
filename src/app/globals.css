@@ -1,0 +1,626 @@
+@import "tailwindcss";
+
+@theme {
+  --color-onyx: #0b0c10;
+  --color-gold: #d4af37;
+  --color-rose-champagne: #e8d3c4;
+  --color-alabaster: #f9f8f6;
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-script: var(--font-great-vibes), cursive;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-onyx);
+  color: var(--color-alabaster);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Editorial scroll-reveal for server-rendered sections (no JS). */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  animation: reveal-up 0.45s ease-out both;
+}
+
+/* Scroll-linked reveal with zero JS where supported. Browsers without
+   animation-timeline simply keep the one-shot animation above. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal-up 1s linear both;
+    animation-timeline: view();
+    animation-range: entry 6% cover 30%;
+  }
+  .reveal-d1 {
+    animation-range: entry 0% cover 22%;
+  }
+  .reveal-d2 {
+    animation-range: entry 12% cover 38%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Landing hero: crossfading Ken Burns slideshow.
+   Three slides, 21s cycle, 7s each — CSS only so the landing page ships no JS.
+   --------------------------------------------------------------------------- */
+@keyframes hero-cycle {
+  0% {
+    opacity: 0;
+  }
+  3% {
+    opacity: 1;
+  }
+  31% {
+    opacity: 1;
+  }
+  34.5%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes hero-drift {
+  0% {
+    transform: scale(1.04) translate3d(1.2%, 0.6%, 0);
+  }
+  34% {
+    transform: scale(1.13) translate3d(-1.1%, -0.8%, 0);
+  }
+  100% {
+    transform: scale(1.13) translate3d(-1.1%, -0.8%, 0);
+  }
+}
+
+.hero-slide {
+  opacity: 0;
+  will-change: opacity, transform;
+  animation:
+    hero-cycle 21s linear infinite,
+    hero-drift 21s ease-out infinite;
+  /* Lift the low-key source photography just enough to read on a dim phone. */
+  filter: brightness(1.1) contrast(1.04) saturate(1.04);
+}
+
+/* Crops per slide. Narrow screens shift the focal point right, where the
+   couple sits, instead of showing their negative space. */
+.hero-pos-0 {
+  object-position: 50% 30%;
+}
+.hero-pos-1 {
+  object-position: 50% 45%;
+}
+.hero-pos-2 {
+  object-position: 50% 40%;
+}
+
+@media (max-width: 767px) {
+  .hero-pos-0 {
+    object-position: 74% 32%;
+  }
+  .hero-pos-1 {
+    object-position: 72% 40%;
+  }
+  .hero-pos-2 {
+    object-position: 70% 36%;
+  }
+}
+
+/* Editorial inset frame, drawn in on load. */
+@keyframes frame-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.hero-frame {
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  pointer-events: none;
+  animation: frame-in 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (min-width: 768px) {
+  .hero-frame {
+    inset: 22px;
+  }
+}
+
+/* Editorial scrim: keeps the left column deep enough for gold/alabaster text
+   to hold a 4.5:1 contrast ratio, while the right side stays photographic. */
+.hero-scrim {
+  background:
+    linear-gradient(
+      100deg,
+      rgba(11, 12, 16, 0.97) 0%,
+      rgba(11, 12, 16, 0.86) 30%,
+      rgba(11, 12, 16, 0.44) 58%,
+      rgba(11, 12, 16, 0.16) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(11, 12, 16, 1) 0%,
+      rgba(11, 12, 16, 0.42) 26%,
+      rgba(11, 12, 16, 0) 55%
+    );
+}
+
+.hero-vignette {
+  background: radial-gradient(
+    130% 95% at 74% 40%,
+    rgba(11, 12, 16, 0) 45%,
+    rgba(11, 12, 16, 0.42) 100%
+  );
+}
+
+/* Faint film grain, drawn with repeating gradients (no image request). */
+.hero-grain {
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      rgba(0, 0, 0, 0) 1px 2px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 0 1px,
+      rgba(0, 0, 0, 0) 1px 3px
+    );
+}
+
+/* Headline reveal: each line rises out of its own mask. */
+@keyframes mask-up {
+  from {
+    transform: translateY(108%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+
+.mask-line {
+  display: block;
+  animation: mask-up 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mask:nth-child(1) .mask-line {
+  animation-delay: 0.15s;
+}
+.mask:nth-child(2) .mask-line {
+  animation-delay: 0.32s;
+}
+.mask:nth-child(3) .mask-line {
+  animation-delay: 0.49s;
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-in {
+  animation: fade-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-in-1 {
+  animation-delay: 0.05s;
+}
+.hero-in-2 {
+  animation-delay: 0.6s;
+}
+.hero-in-3 {
+  animation-delay: 0.75s;
+}
+.hero-in-4 {
+  animation-delay: 0.9s;
+}
+
+/* Rule that draws itself across the frame. */
+@keyframes draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.draw-x {
+  transform-origin: left center;
+  animation: draw-x 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Traveling scroll cue. */
+@keyframes cue-down {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  70%,
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.cue-dot {
+  animation: cue-down 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* Slide indicator bars, synced to the 21s slideshow. */
+@keyframes bar-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  33%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.hero-bar {
+  transform-origin: left center;
+  animation: bar-fill 21s linear infinite;
+}
+
+.hero-bar-0 {
+  animation-delay: 0s;
+}
+.hero-bar-1 {
+  animation-delay: 7s;
+}
+.hero-bar-2 {
+  animation-delay: 14s;
+}
+
+/* Resting glow behind the primary CTA. */
+@keyframes halo {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+.cta-halo {
+  animation: halo 4.5s ease-in-out infinite;
+}
+
+/* Editorial ticker. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+
+/* Slow float for the pass showcase. */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.2deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-1.2deg);
+  }
+}
+
+.float-soft {
+  animation: float-soft 7s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Cinematic scroll motion.
+   Every effect below is driven by the browser's scroll timeline in CSS, so the
+   landing page still ships no JavaScript: parallax, the reading rule, the
+   drawn hairlines and the drifting pass all cost nothing on a 4G phone.
+   Browsers without scroll-timeline support simply render the static frame.
+   --------------------------------------------------------------------------- */
+
+@keyframes progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes hero-parallax {
+  from {
+    transform: translate3d(0, -2.5%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, 2.5%, 0) scale(1.04);
+  }
+}
+
+@keyframes hero-exit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -34px, 0);
+  }
+}
+
+@keyframes parallax-rise {
+  from {
+    transform: translate3d(0, 6%, 0);
+  }
+  to {
+    transform: translate3d(0, -6%, 0);
+  }
+}
+
+@keyframes parallax-drift {
+  from {
+    transform: translate3d(0, 3%, 0);
+  }
+  to {
+    transform: translate3d(0, -3%, 0);
+  }
+}
+
+/* The photographic stage. Held at inset 0 until the parallax is provably
+   supported, so unsupported browsers keep the exact approved crop. */
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+}
+
+@supports (animation-timeline: scroll()) {
+  .hero-stage {
+    /* Extra height only for the movement to travel within. */
+    inset: -6% 0;
+    will-change: transform;
+    animation: hero-parallax linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+/* Hairline gold reading rule across the very top of the page. */
+.scroll-progress {
+  transform: scaleX(0);
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: progress-grow linear both;
+    animation-timeline: scroll(root block);
+  }
+
+  /* Hero copy lifts away a beat ahead of the photograph, so the ticker and the
+     suite never read through it. */
+  .hero-rise {
+    animation: hero-exit linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 30vh 105vh;
+    will-change: opacity, transform;
+  }
+
+  /* Photograph drifts against the page as the showcase passes. */
+  .parallax-soft {
+    will-change: transform;
+    animation: parallax-rise linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+
+  /* Gentle counter-drift for editorial accents. */
+  .parallax-drift {
+    will-change: transform;
+    animation: parallax-drift linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+
+  /* Hairlines that draw themselves as they enter. */
+  .rule-draw {
+    animation: draw-x 1s linear both;
+    animation-timeline: view();
+    animation-range: entry 12% cover 38%;
+  }
+}
+
+.rule-draw {
+  transform-origin: left center;
+}
+
+/* A slow foil sweep across the hero, as if the gold caught the light. */
+@keyframes sheen-sweep {
+  0% {
+    transform: translate3d(-130%, 0, 0);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.5;
+  }
+  42% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(130%, 0, 0);
+    opacity: 0;
+  }
+}
+
+.hero-sheen {
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgba(212, 175, 55, 0.16) 50%,
+    transparent 62%
+  );
+  animation: sheen-sweep 14s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* The solid-gold CTA catches the light on hover. */
+.cta-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-sheen::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  transform: translateX(-170%) skewX(-18deg);
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.group:hover .cta-sheen::before {
+  transform: translateX(320%) skewX(-18deg);
+}
+
+/* Tier CTAs are the hover target themselves, so they light up on self-hover. */
+.cta-sheen:hover::before {
+  transform: translateX(320%) skewX(-18deg);
+}
+
+/* Tier cards answer the cursor with light only — the reveal animations own
+   `transform`, so hover must not compete for it. */
+.tier-card {
+  transition:
+    border-color 0.5s ease,
+    background-color 0.5s ease,
+    box-shadow 0.7s ease;
+}
+
+.tier-card:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 34px 70px -34px rgba(212, 175, 55, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Duration is globally clamped to ~0, which would otherwise leave every slide
+     at its final 0% opacity. Show the first frame instead. */
+  .hero-slide {
+    animation: none !important;
+    opacity: 0;
+  }
+  .hero-slide:first-child {
+    opacity: 1;
+  }
+  .hero-in,
+  .mask-line,
+  .draw-x,
+  .hero-bar,
+  .cta-halo,
+  .cue-dot,
+  .float-soft,
+  .hero-frame,
+  .marquee-track,
+  .hero-rise,
+  .parallax-soft,
+  .parallax-drift,
+  .hero-sheen,
+  .rule-draw {
+    animation: none !important;
+    opacity: 1;
+  }
+  .hero-bar {
+    transform: scaleX(1);
+  }
+  .marquee-track {
+    transform: none;
+  }
+  /* Restore the approved static crop and drop the decorative layers. */
+  .hero-stage {
+    animation: none !important;
+    inset: 0;
+  }
+  .scroll-progress,
+  .hero-sheen,
+  .cta-sheen::before {
+    display: none !important;
+  }
+  .rule-draw {
+    transform: scaleX(1) !important;
+  }
+}
+
