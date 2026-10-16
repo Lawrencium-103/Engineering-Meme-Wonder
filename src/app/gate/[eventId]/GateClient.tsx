@@ -193,7 +193,11 @@ export function GateClient({
       <header className="mx-auto max-w-lg">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.3em] text-gold">Aravow Gate</p>
+            <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-gold">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/aravow-mark.png" alt="" className="h-7 w-7" />
+              Aravow Gate
+            </p>
             <h1 className="mt-1 font-serif text-2xl font-light">
               {groomName} <span className="text-gold">&</span> {brideName}
             </h1>

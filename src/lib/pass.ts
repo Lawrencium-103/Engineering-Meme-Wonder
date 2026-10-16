@@ -33,7 +33,7 @@ const H = 1920;
 
 let fontCache: { serif: Buffer; script: Buffer; sans: Buffer } | null = null;
 
-async function loadFonts() {
+export async function loadFonts() {
   if (fontCache) return fontCache;
   const base = process.cwd() + "/public/fonts";
   const { readFile } = await import("fs/promises");

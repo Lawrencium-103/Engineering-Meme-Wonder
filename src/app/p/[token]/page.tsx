@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -54,7 +55,7 @@ export async function generateMetadata({
   if (!data) return { title: "Invitation not found" };
   const { guest, event } = data;
   return {
-    title: `${guest.firstName}, you're invited — ${event.groomName} & ${event.brideName}`,
+    title: `${guest.firstName}, you're invited · ${event.groomName} & ${event.brideName}`,
     description: `You are warmly invited to the wedding of ${event.groomName} and ${event.brideName}. View your personal invitation and access pass.`,
     openGraph: {
       title: `${guest.firstName}, you're invited`,
@@ -180,7 +181,14 @@ export default async function GuestPage({
 
       {branded && (
         <footer className="border-t border-white/5 py-8 text-center text-xs text-rose-champagne/30">
-          Crafted with Aravow
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 transition-colors hover:text-gold"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/aravow-mark.png" alt="" className="h-6 w-6" />
+            Crafted with Aravow
+          </Link>
         </footer>
       )}
     </main>

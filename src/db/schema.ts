@@ -43,9 +43,39 @@ export const paymentStatus = pgEnum("payment_status", [
   "REFUNDED",
 ]);
 
+/**
+ * Sales agents. Each gets a unique human-friendly code (AV-01-SWT) they hand
+ * to couples at sign-up; the code links every future sale back to them.
+ */
+export const agents = pgTable(
+  "agents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** Human-friendly code handed to couples, e.g. AV-01-SWT. */
+    code: text("code").notNull(),
+    /** Monotonic number embedded in the code (AV-01-…, AV-02-…). */
+    seq: integer("seq").notNull(),
+    name: text("name").notNull(),
+    email: citext("email").notNull().unique(),
+    phone: text("phone"),
+    /** Deactivated agents' codes stop validating at sign-up. */
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("agents_code_unique").on(t.code),
+    uniqueIndex("agents_seq_unique").on(t.seq),
+  ],
+);
+
 export const accounts = pgTable("accounts", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: citext("email").notNull().unique(),
+  /**
+   * Sales agent who referred this couple (their Customer Service ID at
+   * sign-up). First-touch: set once, never overwritten.
+   */
+  referredByAgentId: uuid("referred_by_agent_id").references(() => agents.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -127,7 +157,7 @@ export const payments = pgTable(
     eventId: uuid("event_id")
       .notNull()
       .references(() => events.id, { onDelete: "cascade" }),
-    provider: text("provider").notNull(), // 'bachs'
+    provider: text("provider").notNull(), // 'paystack'
     providerRef: text("provider_ref").notNull(),
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency").notNull().default("NGN"),
@@ -164,5 +194,35 @@ export const guests = pgTable(
     uniqueIndex("guests_event_side_seq_unique").on(t.eventId, t.side, t.seq),
     uniqueIndex("guests_guest_code_unique").on(t.eventId, t.guestCode),
     uniqueIndex("guests_public_token_unique").on(t.publicToken),
+  ],
+);
+
+/** One gift promise per guest; resubmitting updates the row. */
+export interface PromiseItem {
+  kind: "CASH" | "ITEM";
+  label: string;
+  /** Kobo — present on CASH items only. */
+  amountMinor?: number;
+  /** Optional guest note (size, colour, message). */
+  note?: string;
+}
+
+export const giftPromises = pgTable(
+  "gift_promises",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    guestId: uuid("guest_id")
+      .notNull()
+      .references(() => guests.id, { onDelete: "cascade" }),
+    items: jsonb("items").$type<PromiseItem[]>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("gift_promises_guest_unique").on(t.guestId),
+    index("gift_promises_event_idx").on(t.eventId),
   ],
 );

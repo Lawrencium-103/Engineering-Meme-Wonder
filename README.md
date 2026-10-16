@@ -61,6 +61,37 @@ Phase 4: public event page, RSVP flow, atomic ID generation, cap enforcement.
 
 Verified: `scripts/phase6-test.mjs` (9 checks), `scripts/phase6b-test.mjs` (5 checks incl. CSV row + delete), `scripts/phase6c-test.mjs` (7 checks incl. slug immutability and cross-owner isolation).
 
+## Phase 8 — Gift promises (built)
+
+- Guests bless the couple after RSVP: **Cash/Transfer** (amount box), 12 Nigerian-wedding presets (Aso-oke/George, Ankara, Handbag, Shoes, Perfume, Watch, Wallet & belt, Jewelry, Cookware set, Home appliance, Wines & drinks, Food basket) with an optional note each, plus write-in gifts. One green summary button submits; resubmitting updates (UNIQUE per guest).
+- **`POST /api/promises`** (public-token authed, zod-validated, rate-limited) + **`GET /api/promises/[token]`** (prefill). Schema: `gift_promises` (items JSONB, cascade on event/guest delete).
+- **Two separate downloads** after promising: the existing access-pass PNG + a new **promise card** (`GET /api/promise/[token]/card`) — 1080×1920, rendered on the fly (never stored) in the couple's template palette with Aravow branding, guest name + code, and only what they promised.
+- Picker appears on the thank-you screen and again on `/w/[slug]` for returning guests (same browser). Dashboard shows a **Gift promises** panel per event (totals + per-guest items + CSV export via `GET /api/events/[id]/promises[/export]`, owner-only).
+
+Verified: `scripts/promises-test.mjs` (11 checks incl. update-in-place, PNG render, cross-owner isolation).
+
+## Sales agents & attribution (built)
+
+- **Entry point** — landing header nav (`src/components/SiteMenu.tsx`): desktop shows *Couple sign in · **Make money** · Open the Studio*; mobile-only hamburger opens the same three links (NB: no onClick state-close on mobile links — closing mid-click unmounts the menu and cancels Next.js client navigation). Verified live in Playwright: all three mobile links navigate.
+- **`/agent`** — sales-agent hub. Signed out (or not an agent): registration form (name, email, optional phone + team signup code). `POST /api/agents/register` creates the agent with a generated unique **Customer Service ID** like **`AV-01-SWT`** (`AV` + monotonic 2+ digit number + 3 consonant letters; UNIQUE indexes on `code` and `seq`), then emails the usual magic link (`next=/agent`). Dev fallback returns `devMagicLink`. Duplicate email → 409. Optional closed-funnel gate: set `AGENT_SIGNUP_CODE` in the env and registration must match it. Rate limited 5/15min/IP.
+- **Agent dashboard** (same `/agent`, when signed in) — the code in large mono with a **Copy** button, headline stats (couples referred / paid sales / total value), and a per-couple ledger: referred account email, wedding names, tier, amount paid (SUM of SUCCESS payments) — i.e. **who sold to whom and what was sold**.
+- **Customer side** — the Studio sign-up step (`/studio` Save section) has a **“Customer Service ID (if an agent signed you up)”** input next to a **None** button (None = clear/no agent, the default). Sent as `agentCode` on the anonymous save only.
+- **`POST /api/studio/save`** validates `agentCode` against **active** agents (unknown code → 400 with a friendly message) and stamps `accounts.referred_by_agent_id` — **first-touch**: set on account creation, and applied later only if the account was never attributed; never overwritten. Empty code = no agent.
+- **Attribution chain**: `agents` ← `accounts.referred_by_agent_id` → `events` → `payments`, so every future Paystack payment by a referred couple rolls up to their agent with no changes to the payment/webhook flow. Schema: `agents` table + `accounts.referred_by_agent_id` FK (`drizzle/0005_*.sql`).
+
+Verified live: agent register (code format `AV-\d{2}-[A-Z]{3}`), duplicate 409, studio save with valid code 200 / unknown code 400 / no code 200, DB rows stamped correctly, `/agent` signed-in (code + ledger) and signed-out (form) both 200, Studio field + None button via Playwright.
+
+## Agent compensation plan (built)
+
+Single source of truth: `src/lib/agent-comp.ts`.
+
+- **Points per plan** — FREE 0.5 · CLASSIC 2 · GRAND 4 · EPIC 6. Free sign-ups grow the funnel but carry little weight; 8 free + 2 Classic (8 pts) earns strictly less than 3+ bigger plans (10+ pts).
+- **Payout** — 15% commission on everything sold, always. Hit **10 points** and add a **₦40,000 bonus**: `payoutFor(points, salesMinor) → { qualifies, commissionMinor, bonusMinor, totalMinor, pointsToGo }`.
+- **`/agent` registration view** now recruits + trains: *What is Aravow*, *Why we need you*, a 5-step *Short sales course*, *Where to sell* (schools, offices, friends & family, churches & mosques, associations & groups, events & networking), a copyable *sales script* (`AgentScript.tsx`), and a *How much you make* table with worked examples (`AgentEarnings.tsx`).
+- **Agent dashboard** shows a live *Your earnings* panel (`AgentEarningsPanel.tsx`): points, progress bar to 10, total sold, 15% commission, bonus, take-home; each ledger row also shows its tier points.
+
+Verified: 13/13 comp-math unit checks, registration view content checks, dashboard earnings with a simulated Classic payment (2 pts, 8 pts to go, correct commission).
+
 ### Phase 7 setup
 Fonts are committed under `public/fonts/` (Google Fonts, OFL — **static** TTFs; Satori's bundled opentype parser crashes on variable fonts). `@resvg/resvg-js` and `satori` are native/wasm-bearing — already marked `serverExternalPackages` in `next.config.ts`.
 Fonts are committed under `public/fonts/` (Google Fonts, OFL — **static** TTFs; Satori's bundled opentype parser crashes on variable fonts). `@resvg/resvg-js` and `satori` are native/wasm-bearing — already marked `serverExternalPackages` in `next.config.ts`.

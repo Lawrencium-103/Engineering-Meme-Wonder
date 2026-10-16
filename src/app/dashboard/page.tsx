@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import { getSessionAccount } from "@/lib/auth";
 import { DashboardClient } from "./DashboardClient";
 import { GuestTable } from "./GuestTable";
+import { PromisesPanel } from "./PromisesPanel";
 
 export default async function DashboardPage() {
   const account = await getSessionAccount();
@@ -40,10 +42,16 @@ export default async function DashboardPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gold/40 bg-gold/10 font-serif text-xl text-gold">
             {account.email.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <p className="text-gold tracking-[0.35em] text-xs uppercase">Aravow</p>
+          <Link href="/" className="group block">
+            <div className="flex items-center gap-2.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/aravow-mark.png" alt="" className="h-10 w-10" />
+              <p className="text-gold tracking-[0.35em] text-xs uppercase transition-colors group-hover:text-gold/80">
+                Aravow
+              </p>
+            </div>
             <h1 className="font-serif text-3xl font-light mt-1">Your Dashboard</h1>
-          </div>
+          </Link>
         </div>
         <div className="flex items-center gap-5">
           <div className="text-right">
@@ -62,7 +70,10 @@ export default async function DashboardPage() {
       {rows
         .filter((r) => r.status === "PUBLISHED")
         .map((r) => (
-          <GuestTable key={r.id} eventId={r.id} eventName={`${r.groomName} & ${r.brideName}`} />
+          <div key={r.id}>
+            <GuestTable eventId={r.id} eventName={`${r.groomName} & ${r.brideName}`} />
+            <PromisesPanel eventId={r.id} />
+          </div>
         ))}
     </main>
   );

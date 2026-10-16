@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ceremonies, events, guests } from "@/db/schema";
 import { RsvpFlow } from "./RsvpFlow";
+import { PromiseReturn } from "@/components/PromiseReturn";
 import { isBranded, normalizeTier } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
@@ -242,12 +244,26 @@ export default async function WeddingPage({
         <p className="mb-8 text-center text-sm text-rose-champagne/60">
           Kindly respond — we would love to celebrate with you.
         </p>
-        <RsvpFlow slug={slug} full={full} />
+        <RsvpFlow
+          slug={slug}
+          full={full}
+          couple={{ groomName: event.groomName, brideName: event.brideName }}
+        />
       </section>
+
+      {/* Gift promise for returning guests who already RSVP'd in this browser. */}
+      <PromiseReturn slug={slug} groomName={event.groomName} brideName={event.brideName} />
 
       {isBranded(normalizeTier(event.tier)) && (
         <footer className="border-t border-white/5 py-8 text-center text-xs text-rose-champagne/30">
-          Crafted with Aravow
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 transition-colors hover:text-gold"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/aravow-mark.png" alt="" className="h-6 w-6" />
+            Crafted with Aravow
+          </Link>
         </footer>
       )}
     </main>

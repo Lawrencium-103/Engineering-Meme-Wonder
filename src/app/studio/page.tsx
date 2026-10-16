@@ -19,12 +19,15 @@ import { COLOUR_PRESETS } from "@/lib/flyer/presets";
 import { HeroUpload } from "@/components/HeroUpload";
 import { SignaturePad } from "@/components/SignaturePad";
 import { LivePreview } from "@/components/LivePreview";
+import Link from "next/link";
 
 const OPTIONAL: CeremonyKind[] = ["TRADITIONAL", "COURT", "RELIGIOUS"];
 
 export default function StudioPage() {
   const [draft, setDraft] = useState<StudioDraft>(emptyDraft);
   const [email, setEmail] = useState("");
+  /** Agent's Customer Service ID given to the couple ("" = None). */
+  const [agentCode, setAgentCode] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   /** Dev-only sign-in link (returned as devMagicLink when email isn't configured). */
@@ -116,6 +119,8 @@ export default function StudioPage() {
         ceremonies: draft.ceremonies,
         flyer: draft.flyer,
         ...(signedIn ? {} : { email }),
+        // Only sent on the anonymous sign-up path; the signed-in PATCH ignores it.
+        ...(signedIn || !agentCode.trim() ? {} : { agentCode: agentCode.trim().toUpperCase() }),
       };
 
       // Editing an existing event (including a PUBLISHED one): PATCH it.
@@ -160,6 +165,22 @@ export default function StudioPage() {
   return (
     <>
       <main className="min-h-dvh px-5 py-14 max-w-2xl mx-auto pb-40">
+        <nav className="mb-12 flex items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 text-[0.62rem] uppercase tracking-[0.3em] text-rose-champagne/70 transition-colors hover:text-gold"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/aravow-mark.png" alt="" className="h-9 w-9" />
+            Aravow
+          </Link>
+          <Link
+            href="/dashboard"
+            className="text-[0.62rem] uppercase tracking-[0.24em] text-rose-champagne/70 transition-colors hover:text-gold"
+          >
+            Dashboard
+          </Link>
+        </nav>
         <p className="text-gold tracking-[0.35em] text-xs uppercase">Aravow Studio</p>
         <h1 className="font-serif text-4xl md:text-5xl font-light mt-4 leading-tight">
           Craft Your <em className="italic text-gold">Wedding Suite</em>
@@ -167,6 +188,13 @@ export default function StudioPage() {
         <p className="mt-3 text-sm text-rose-champagne/70">
           Your draft saves automatically in this browser.
         </p>
+        {/* Live card preview: sits above the form on all normal screens; on
+            xl+ it becomes a fixed overlay in the bottom-right corner. */}
+        <div className="mx-auto mt-10 w-full max-w-[300px] xl:pointer-events-none xl:fixed xl:bottom-6 xl:right-6 xl:z-40 xl:mx-0 xl:mt-0 xl:w-[300px] xl:max-w-none">
+          <div className="pointer-events-auto max-h-[80vh] overflow-y-auto">
+            <LivePreview draft={draft} />
+          </div>
+        </div>
         <form onSubmit={handleSave} className="mt-12 space-y-12">
           <NamesSection draft={draft} setDraft={setDraft} update={update} />
           <DaySection draft={draft} update={update} />
@@ -220,6 +248,8 @@ export default function StudioPage() {
             signedIn={signedIn}
             email={email}
             setEmail={setEmail}
+            agentCode={agentCode}
+            setAgentCode={setAgentCode}
             saving={saving}
             saved={saved}
             devLink={devLink}
@@ -227,12 +257,6 @@ export default function StudioPage() {
           />
         </form>
       </main>
-      {/* Live card preview — fixed on desktop, where there's room beside the form. */}
-      <div className="pointer-events-none fixed bottom-6 right-6 z-40 hidden w-[300px] xl:block">
-        <div className="pointer-events-auto max-h-[80vh] overflow-y-auto">
-          <LivePreview draft={draft} />
-        </div>
-      </div>
     </>
   );
 }
@@ -767,6 +791,8 @@ function SaveSection({
   signedIn,
   email,
   setEmail,
+  agentCode,
+  setAgentCode,
   saving,
   saved,
   devLink,
@@ -775,6 +801,8 @@ function SaveSection({
   signedIn: boolean | null;
   email: string;
   setEmail: (v: string) => void;
+  agentCode: string;
+  setAgentCode: (v: string) => void;
   saving: boolean;
   saved: boolean;
   devLink: string | null;
@@ -783,16 +811,51 @@ function SaveSection({
   return (
     <div className="border-t border-white/10 pt-8">
       {signedIn === false && (
-        <Field label="Your email — we'll send a sign-in link to claim this draft">
-          <input
-            type="email"
-            className={inputCls}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-          />
-        </Field>
+        <>
+          <Field label="Your email — we'll send a sign-in link to claim this draft">
+            <input
+              type="email"
+              className={inputCls}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </Field>
+          <div className="mt-5">
+            <Field label="Customer Service ID (if an agent signed you up)">
+              <div className="flex gap-2">
+                <input
+                  className={inputCls + " uppercase"}
+                  value={agentCode}
+                  onChange={(e) => setAgentCode(e.target.value.toUpperCase())}
+                  placeholder="AV-01-SWT"
+                  maxLength={20}
+                  autoComplete="off"
+                  aria-label="Customer Service ID"
+                />
+                <button
+                  type="button"
+                  onClick={() => setAgentCode("")}
+                  disabled={!agentCode}
+                  className={`shrink-0 border px-4 text-xs uppercase tracking-[0.2em] transition-colors ${
+                    !agentCode
+                      ? "border-gold/60 bg-gold/10 text-gold"
+                      : "border-white/15 text-rose-champagne/50 hover:border-gold/60 hover:text-gold"
+                  }`}
+                  aria-pressed={!agentCode}
+                >
+                  None
+                </button>
+              </div>
+              {!agentCode && (
+                <p className="mt-1.5 text-xs text-rose-champagne/40">
+                  No agent — that&apos;s fine. Tap None to confirm.
+                </p>
+              )}
+            </Field>
+          </div>
+        </>
       )}
       {errors.length > 0 && (
         <ul className="mb-4 space-y-1 text-sm text-red-400">

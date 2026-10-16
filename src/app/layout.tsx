@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter, Great_Vibes } from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans, Great_Vibes } from "next/font/google";
+import IntroAudio from "@/components/IntroAudio";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -9,7 +10,9 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
-const inter = Inter({
+/** Modern UI sans: clean geometric grotesque for body/UI (kept on the same
+ *  CSS variable, so globals.css needed no change). */
+const inter = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-inter",
 });
@@ -21,9 +24,13 @@ const greatVibes = Great_Vibes({
 });
 
 export const metadata: Metadata = {
-  title: "Aravow — An Invitation Worth Keeping Forever",
+  title: "Aravow · An Invitation Worth Keeping Forever",
   description:
     "Premium digital wedding invitations and RSVP for Nigerian weddings. Craft your suite, invite your guests, keep every memory.",
+  openGraph: {
+    siteName: "Aravow",
+    images: ["/aravow-logo.png"],
+  },
 };
 
 export default function RootLayout({
@@ -38,7 +45,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${cormorant.variable} ${inter.variable} ${greatVibes.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <IntroAudio />
+        {children}
+      </body>
     </html>
   );
 }

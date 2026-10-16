@@ -104,6 +104,12 @@ export const studioSaveSchema = z
       }),
     /** Required only when the visitor is not signed in yet. */
     email: z.string().email().optional(),
+    /**
+     * Agent's Customer Service ID (e.g. AV-01-SWT) given to the couple by a
+     * sales agent. Empty string = "None" (no agent). Validated server-side
+     * against active agents on save.
+     */
+    agentCode: z.string().trim().max(20).optional().default(""),
   })
   .superRefine((val, ctx) => {
     const reception = val.ceremonies.find((c) => c.kind === "RECEPTION");

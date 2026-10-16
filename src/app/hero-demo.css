@@ -1,0 +1,1087 @@
+/* Phone-demo animation for the landing hero.
+   Ported from aravow-hero-demo.html â€” a 10s, four-beat CSS loop:
+   WhatsApp link â†’ invitation scroll + typed RSVP â†’ pass celebration â†’ dashboard.
+   Tokens are scoped to .demo; fonts map to the app's next/font families. */
+
+.demo {
+  --onyx: #0b0c10;
+  --gold: #d4af37;
+  --rose: #e8d3c4;
+  --alabaster: #f9f8f6;
+  --muted: rgba(249, 248, 246, 0.62);
+  --line: rgba(212, 175, 55, 0.22);
+  --T: 10s;
+  --serif: var(--font-serif);
+  --sans: var(--font-sans);
+  --script: var(--font-script);
+  color-scheme: dark;
+  margin: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+/* Beside the hero copy on large screens only. Left-aligned in its column so
+   the hero photograph stays visible on wide displays, then nudged 1.6cm
+   further left (160px on screen) so the phone sits clear of the edge.
+   Shrinking happens via `zoom` (real layout, stays pixel-crisp) instead of
+   `transform: scale()`, which rasterised the animated phone as a soft GPU
+   layer. `zoom` also scales transform lengths, so the translate values are
+   the desired screen offset divided by the zoom factor. */
+@media (min-width: 1024px) {
+  .demo {
+    display: flex;
+    justify-self: start;
+    zoom: 0.85;
+    transform: translateX(-153px); /* -130px on screen */
+  }
+}
+
+/* Shrink further on short viewports so the hero stays near one screen. */
+@media (min-width: 1024px) and (max-height: 1000px) {
+  .demo {
+    zoom: 0.8;
+    transform: translateX(-162px); /* -130px on screen */
+  }
+}
+@media (min-width: 1024px) and (max-height: 880px) {
+  .demo {
+    zoom: 0.72;
+    transform: translateX(-180px); /* -130px on screen */
+  }
+}
+@media (min-width: 1024px) and (max-height: 760px) {
+  .demo {
+    zoom: 0.64;
+    transform: translateX(-203px); /* -130px on screen */
+  }
+}
+
+/* ---------- Phone ---------- */
+.phone-wrap {
+  width: 300px;
+  height: 612px;
+  transform-origin: 50% 12%;
+  animation: phoneSwing 18s ease-in-out infinite;
+}
+/* Very slow left-to-right pendulum swing while the demo plays. */
+@keyframes phoneSwing {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+.phone {
+  position: relative;
+  width: 300px;
+  height: 612px;
+  border-radius: 46px;
+  padding: 10px;
+  background: linear-gradient(145deg, #2a2b30, #121318 40%, #1d1e23);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.25),
+    0 40px 80px -20px rgba(0, 0, 0, 0.8),
+    0 0 120px -30px rgba(212, 175, 55, 0.25);
+}
+.notch {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 92px;
+  height: 24px;
+  margin-left: -46px;
+  border-radius: 14px;
+  background: #000;
+  z-index: 5;
+}
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 36px;
+  overflow: hidden;
+  background: var(--onyx);
+}
+.scr {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.s1 {
+  animation: show1 var(--T) infinite;
+}
+.s2 {
+  animation: show2 var(--T) infinite;
+}
+.s3 {
+  animation: show3 var(--T) infinite;
+}
+.s4 {
+  animation: show4 var(--T) infinite;
+}
+.ripple {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: rgba(249, 248, 246, 0.45);
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+
+/* Beat 1: WhatsApp with the live OG preview */
+.wa {
+  background: #0b141a;
+  font-size: 12.5px;
+  color: #e9edef;
+  display: flex;
+  flex-direction: column;
+}
+.wa-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1f2c34;
+  padding: 52px 14px 12px;
+}
+.wa-back {
+  font-size: 22px;
+  line-height: 1;
+  color: #aebac1;
+}
+.wa-av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--rose);
+  color: var(--onyx);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+.wa-head b {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+}
+.wa-head small {
+  color: #8696a0;
+  font-size: 11px;
+}
+.wa-body {
+  flex: 1;
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.msg {
+  position: relative;
+  align-self: flex-start;
+  max-width: 88%;
+  background: #202c33;
+  border-radius: 0 10px 10px 10px;
+  padding: 7px 9px 18px;
+  line-height: 1.4;
+}
+.msg time {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  font-size: 10px;
+  color: #8696a0;
+}
+.invite {
+  padding: 4px 4px 18px;
+  width: 88%;
+  animation: bubbleIn var(--T) infinite;
+}
+.og {
+  background: #1a2329;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.og-img {
+  height: 132px;
+  background: #15110d;
+  overflow: hidden;
+}
+.og-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.og-text {
+  padding: 8px 9px;
+}
+.og-text b {
+  display: block;
+  font-weight: 500;
+  font-size: 12.5px;
+}
+.og-text small {
+  display: block;
+  color: #8696a0;
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.og-text em {
+  display: block;
+  font-style: normal;
+  color: #8696a0;
+  font-size: 10.5px;
+  margin-top: 4px;
+}
+.lnk {
+  margin: 6px 6px 0;
+  color: #53bdeb;
+  font-size: 12px;
+  word-break: break-all;
+}
+.ticks {
+  color: #53bdeb;
+  margin-left: 3px;
+  opacity: 0;
+  animation: ticks var(--T) infinite;
+}
+.r1 {
+  left: 50%;
+  top: 32%;
+  animation: ripple1 var(--T) infinite;
+}
+.wa-input {
+  margin: 8px 10px 14px;
+  background: #1f2c34;
+  border-radius: 22px;
+  padding: 11px 16px;
+  color: #8696a0;
+}
+
+/* Beat 2: the public invitation page, scrolled to RSVP */
+.inv-scroll {
+  animation: scrollInv var(--T) infinite;
+}
+.inv-hero {
+  position: relative;
+  height: 330px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 18px 34px;
+  text-align: center;
+  overflow: hidden;
+}
+.inv-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% center;
+}
+.inv-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 12, 16, 0.15),
+    rgba(11, 12, 16, 0.55) 45%,
+    var(--onyx)
+  );
+}
+.inv-hero > *:not(img) {
+  position: relative;
+  z-index: 1;
+}
+.inv-mono {
+  font-family: var(--script);
+  font-size: 34px;
+  color: var(--gold);
+  margin: 0 0 4px;
+}
+.inv-eyebrow {
+  font-size: 10.5px;
+  color: var(--rose);
+  margin: 0 0 6px;
+  letter-spacing: 0.04em;
+}
+.inv-names {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.05;
+  margin: 0;
+}
+.inv-names .amp {
+  color: var(--gold);
+}
+.inv-date {
+  font-size: 12px;
+  color: var(--alabaster);
+  margin: 8px 0 0;
+  opacity: 0.85;
+}
+.inv-body {
+  padding: 6px 16px 30px;
+}
+.card-img {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  height: 250px;
+}
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  background: #15110d;
+}
+.cer {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.cer.rec {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+.cer b {
+  display: block;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.cer span {
+  display: block;
+}
+.cer .muted {
+  color: var(--muted);
+}
+.cer a {
+  display: block;
+  color: var(--gold);
+  text-decoration: none;
+  margin-top: 3px;
+  font-size: 10.5px;
+}
+.form {
+  margin-top: 18px;
+}
+.f-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  margin: 0 0 10px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+}
+.field {
+  flex: 1;
+  margin-bottom: 8px;
+}
+.field label {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.input {
+  height: 34px;
+  border: 1px solid rgba(249, 248, 246, 0.25);
+  border-radius: 4px;
+  padding: 0 9px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  overflow: hidden;
+}
+.typed {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 0;
+}
+.t1 {
+  animation: type1 var(--T) infinite;
+}
+.t2 {
+  animation: type2 var(--T) infinite;
+}
+.t3 {
+  animation: type3 var(--T) infinite;
+}
+.consent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin: 4px 0 12px;
+}
+.box {
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(249, 248, 246, 0.4);
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--onyx);
+  animation: checkOn var(--T) infinite;
+}
+.rsvp-btn {
+  position: relative;
+  overflow: hidden;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 2px;
+  animation: btnOn var(--T) infinite;
+}
+.r2 {
+  left: 50%;
+  top: 50%;
+  animation: ripple2 var(--T) infinite;
+}
+
+/* Beat 3: celebration screen with the pass PNG */
+.cel {
+  background: radial-gradient(
+      circle at 50% 35%,
+      rgba(212, 175, 55, 0.16),
+      transparent 65%
+    ),
+    var(--onyx);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 16px 0;
+}
+.cel-k {
+  font-family: var(--serif);
+  font-size: 20px;
+  margin: 0;
+}
+.cel-code {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  margin: 2px 0 12px;
+}
+.confetti i {
+  position: absolute;
+  top: -14px;
+  left: var(--x);
+  width: 6px;
+  height: 11px;
+  background: var(--c);
+  border-radius: 1px;
+  opacity: 0;
+  animation: fall var(--T) infinite linear;
+  animation-delay: var(--d);
+}
+.pass {
+  width: 196px;
+  aspect-ratio: 9/16;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.4),
+    0 24px 50px -16px rgba(0, 0, 0, 0.9);
+  animation: passIn var(--T) infinite;
+  background: #15110d;
+}
+.pass img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 250px;
+  margin-top: 14px;
+  opacity: 0;
+  animation: actions var(--T) infinite;
+}
+.actions span {
+  font-size: 10px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  white-space: nowrap;
+}
+.actions .wa-btn {
+  background: #25d366;
+  border-color: #25d366;
+  color: #06210f;
+  font-weight: 600;
+}
+
+/* Beat 4: the couple's dashboard, live */
+.dash {
+  background: var(--onyx);
+  padding: 54px 16px 0;
+  font-size: 11.5px;
+}
+.d-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  margin: 0 0 12px;
+}
+.ev {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+}
+.ev-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ev-top b {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+}
+.pill {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background: rgba(63, 178, 127, 0.15);
+  color: #6fd3a4;
+  border: 1px solid rgba(63, 178, 127, 0.4);
+}
+.ev small {
+  color: var(--muted);
+}
+.cap-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0 5px;
+  font-size: 11px;
+}
+.count {
+  position: relative;
+  display: inline-block;
+  width: 2.2ch;
+  height: 1.2em;
+  overflow: hidden;
+  vertical-align: bottom;
+  text-align: right;
+}
+.count span {
+  position: absolute;
+  right: 0;
+  animation: countUp var(--T) infinite;
+}
+.count span + span {
+  transform: translateY(100%);
+  opacity: 0;
+  animation-name: countUp2;
+}
+.meter {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(249, 248, 246, 0.1);
+  overflow: hidden;
+}
+.meter i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  width: var(--from);
+  animation: meter var(--T) infinite;
+}
+.tbl {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.tr {
+  display: grid;
+  grid-template-columns: 76px 1fr 46px;
+  gap: 6px;
+  padding: 9px 10px;
+  border-top: 1px solid rgba(212, 175, 55, 0.12);
+  font-size: 10.5px;
+}
+.tr:first-child {
+  border-top: 0;
+}
+.th {
+  color: var(--muted);
+  font-size: 9.5px;
+  background: rgba(249, 248, 246, 0.03);
+}
+.code {
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.new {
+  animation: newRow var(--T) infinite;
+}
+.d-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.d-actions span {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  padding: 8px 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+/* Captions under the phone */
+.captions {
+  width: 300px;
+  text-align: center;
+}
+.steps {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(249, 248, 246, 0.16);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.b1 i {
+  animation: fill1 var(--T) infinite linear;
+}
+.b2 i {
+  animation: fill2 var(--T) infinite linear;
+}
+.b3 i {
+  animation: fill3 var(--T) infinite linear;
+}
+.b4 i {
+  animation: fill4 var(--T) infinite linear;
+}
+.cap-stack {
+  position: relative;
+  height: 30px;
+}
+.cap {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 21px;
+  opacity: 0;
+}
+.c1 {
+  animation: show1 var(--T) infinite;
+}
+.c2 {
+  animation: show2 var(--T) infinite;
+}
+.c3 {
+  animation: show3 var(--T) infinite;
+}
+.c4 {
+  animation: show4 var(--T) infinite;
+}
+
+/* ---------- Timeline: 10s loop, 4 beats of 2.5s ---------- */
+@keyframes show1 {
+  0% {
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 1;
+  }
+  26%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes show2 {
+  0%,
+  24% {
+    opacity: 0;
+  }
+  27% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes show3 {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 1;
+  }
+  73% {
+    opacity: 1;
+  }
+  76%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes show4 {
+  0%,
+  74% {
+    opacity: 0;
+  }
+  77% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes bubbleIn {
+  0%,
+  3% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  9%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ticks {
+  0%,
+  11% {
+    opacity: 0;
+  }
+  13%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes ripple1 {
+  0%,
+  17% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  18% {
+    opacity: 0.7;
+    transform: scale(0.3);
+  }
+  23%,
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes scrollInv {
+  0%,
+  28% {
+    transform: translateY(0);
+  }
+  32%,
+  33% {
+    transform: translateY(-300px);
+  }
+  37%,
+  100% {
+    transform: translateY(-718px);
+  }
+}
+@keyframes type1 {
+  0%,
+  37% {
+    max-width: 0;
+    animation-timing-function: steps(5, end);
+  }
+  39.5%,
+  100% {
+    max-width: 5em;
+  }
+}
+@keyframes type2 {
+  0%,
+  39.5% {
+    max-width: 0;
+    animation-timing-function: steps(6, end);
+  }
+  42%,
+  100% {
+    max-width: 6em;
+  }
+}
+@keyframes type3 {
+  0%,
+  42% {
+    max-width: 0;
+    animation-timing-function: steps(4, end);
+  }
+  43.5%,
+  100% {
+    max-width: 9em;
+  }
+}
+@keyframes checkOn {
+  0%,
+  44% {
+    background: transparent;
+    border-color: rgba(249, 248, 246, 0.4);
+    color: transparent;
+  }
+  44.5%,
+  100% {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--onyx);
+  }
+}
+@keyframes btnOn {
+  0%,
+  45.5% {
+    background: transparent;
+    color: var(--gold);
+  }
+  46.5%,
+  100% {
+    background: var(--gold);
+    color: var(--onyx);
+  }
+}
+@keyframes ripple2 {
+  0%,
+  45% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  45.5% {
+    opacity: 0.7;
+    transform: scale(0.3);
+  }
+  49%,
+  100% {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+@keyframes fall {
+  0%,
+  50% {
+    opacity: 0;
+    transform: translateY(0) rotate(0);
+  }
+  51.5% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0.9;
+    transform: translateY(560px) rotate(var(--r));
+  }
+  67%,
+  100% {
+    opacity: 0;
+    transform: translateY(560px) rotate(var(--r));
+  }
+}
+@keyframes passIn {
+  0%,
+  51% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+  57%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes actions {
+  0%,
+  59% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  62%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes newRow {
+  0%,
+  81% {
+    opacity: 0;
+    transform: translateY(-10px);
+    background: transparent;
+  }
+  83% {
+    opacity: 1;
+    transform: none;
+    background: rgba(212, 175, 55, 0.22);
+  }
+  95%,
+  100% {
+    opacity: 1;
+    background: rgba(212, 175, 55, 0.06);
+  }
+}
+@keyframes countUp {
+  0%,
+  82% {
+    transform: none;
+    opacity: 1;
+  }
+  84%,
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+@keyframes countUp2 {
+  0%,
+  82% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  84%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes meter {
+  0%,
+  82% {
+    width: var(--from);
+  }
+  86%,
+  100% {
+    width: var(--to);
+  }
+}
+
+@keyframes fill1 {
+  0% {
+    transform: scaleX(0);
+  }
+  25%,
+  99% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+@keyframes fill2 {
+  0%,
+  25% {
+    transform: scaleX(0);
+  }
+  50%,
+  99% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+@keyframes fill3 {
+  0%,
+  50% {
+    transform: scaleX(0);
+  }
+  75%,
+  99% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+@keyframes fill4 {
+  0%,
+  75% {
+    transform: scaleX(0);
+  }
+  99% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+/* Reduced motion: freeze on the celebration screen with the pass.
+   Scoped to .demo so the rest of the page keeps its motion. */
+@media (prefers-reduced-motion: reduce) {
+  .demo *,
+  .demo *::before,
+  .demo *::after {
+    animation: none !important;
+  }
+  .demo .s3,
+  .demo .c3,
+  .demo .pass,
+  .demo .actions {
+    opacity: 1;
+    transform: none;
+  }
+  .demo .confetti {
+    display: none;
+  }
+  .demo .b1 i,
+  .demo .b2 i,
+  .demo .b3 i {
+    transform: scaleX(1);
+  }
+}

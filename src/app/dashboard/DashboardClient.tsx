@@ -26,10 +26,17 @@ export function DashboardClient({ events: initial }: { events: EventRow[] }) {
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.has("ref")) {
-      window.history.replaceState({}, "", "/dashboard");
-      setTimeout(() => window.location.reload(), 2500);
-    }
+    const ref = url.searchParams.get("ref");
+    if (!ref) return;
+    url.searchParams.delete("ref");
+    window.history.replaceState({}, "", url.pathname + url.search);
+    // After checkout Paystack redirects back with ?ref=. In production the
+    // webhook has already (or soon will) fulfil the payment. In local dev the
+    // webhook can't reach localhost, so ask the server to confirm the payment
+    // against Paystack's verify endpoint (dev-only route; 404s in prod).
+    fetch(`/api/payments/dev-verify?ref=${encodeURIComponent(ref)}`)
+      .catch(() => undefined)
+      .finally(() => setTimeout(() => window.location.reload(), 2500));
   }, []);
 
   async function pay(eventId: string) {
@@ -196,7 +203,7 @@ function TierPicker({
       </button>
       <p className="mt-2 text-xs text-rose-champagne/40">
         {branded
-          ? "Free tier shows Aravow branding and is capped at 30 guests."
+          ? "Free tier shows Aravow branding and is capped at 75 guests."
           : "Secure checkout · your page goes live the moment payment is confirmed."}
       </p>
     </div>

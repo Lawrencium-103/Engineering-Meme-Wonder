@@ -280,7 +280,12 @@ export default async function PreviewPage({
         <p className="mb-6 text-center text-xs uppercase tracking-wider text-amber-300/80">
           Test mode — try the form below. Nothing you enter here is saved.
         </p>
-        <RsvpFlow slug="" full={false} test />
+        <RsvpFlow
+          slug=""
+          full={false}
+          test
+          couple={{ groomName: event.groomName, brideName: event.brideName }}
+        />
       </section>
       <footer className="border-t border-white/5 py-8 text-center text-xs text-rose-champagne/30">
         Crafted with Aravow

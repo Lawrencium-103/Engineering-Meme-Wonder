@@ -52,7 +52,7 @@ try {
   // ---------- 1. Landing ----------
   await page.goto(BASE, { waitUntil: "networkidle" });
   const headline = await page.locator("h1").first().innerText();
-  check("landing headline", headline.includes("An Invitation Worth"), headline.replace(/\s+/g, " ").slice(0, 60));
+  check("landing headline", headline.includes("Know exactly"), headline.replace(/\s+/g, " ").slice(0, 60));
   check("landing CTA", await page.getByRole("link", { name: /Craft Your Wedding Suite/i }).isVisible());
   await shot("01-landing");
 

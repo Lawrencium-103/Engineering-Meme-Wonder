@@ -8,6 +8,7 @@ import { studioSaveSchema } from "@/lib/studio-schema";
 import { zonedTimeToUtc } from "@/lib/time";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { DEFAULT_TIER, FREE_GUEST_CAP } from "@/lib/pricing";
+import { findActiveAgentByCode } from "@/lib/agents";
 import { TEMPLATES, getTemplate } from "@/lib/flyer/catalog";
 
 /**
@@ -52,10 +53,34 @@ export async function POST(req: Request) {
   }
   const email = session?.email ?? input.email!.toLowerCase();
 
+  // Agent attribution (Customer Service ID entered at sign-up). First-touch:
+  // validate the code against active agents; empty = "None" = no agent.
+  let referredByAgentId: string | null = null;
+  if (input.agentCode) {
+    const agent = await findActiveAgentByCode(input.agentCode);
+    if (!agent) {
+      return NextResponse.json(
+        { error: "That Customer Service ID was not found. Check the code with your agent, or choose None." },
+        { status: 400 },
+      );
+    }
+    referredByAgentId = agent.id;
+  }
+
   // Resolve or create the account.
   let [account] = await db.select().from(accounts).where(eq(accounts.email, email)).limit(1);
   if (!account) {
-    [account] = await db.insert(accounts).values({ email }).returning();
+    [account] = await db
+      .insert(accounts)
+      .values({ email, referredByAgentId })
+      .returning();
+  } else if (!account.referredByAgentId && referredByAgentId) {
+    // Existing unattributed account that just supplied a code — attribute once.
+    await db
+      .update(accounts)
+      .set({ referredByAgentId })
+      .where(eq(accounts.id, account.id));
+    account = { ...account, referredByAgentId };
   }
 
   // Convert ceremony local times to UTC instants using the event timezone.

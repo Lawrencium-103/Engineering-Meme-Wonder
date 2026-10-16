@@ -4,7 +4,7 @@ import { and, desc, eq, sum } from "drizzle-orm";
 import { db } from "@/db";
 import { events, payments } from "@/db/schema";
 import { getSessionAccount, appUrl } from "@/lib/auth";
-import { createCheckoutSession, bachsConfigured } from "@/lib/bachs";
+import { initializeTransaction, paystackConfigured } from "@/lib/paystack";
 import { upgradeAmountMinor, type TierId } from "@/lib/pricing";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 
@@ -14,22 +14,12 @@ const bodySchema = z.object({
   tier: z.enum(["CLASSIC", "GRAND", "EPIC"]),
 });
 
-/** Bachs refuses localhost/private redirect URLs, so detect them to omit. */
-function isLocalhost(url: string): boolean {
-  try {
-    const h = new URL(url).hostname;
-    return h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "[::1]";
-  } catch {
-    return true;
-  }
-}
-
 export async function POST(req: Request) {
   const ip = clientIp(req);
   if (!rateLimit(`pay:${ip}`, 10, 10 * 60 * 1000).ok) {
     return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   }
-  if (!bachsConfigured()) {
+  if (!paystackConfigured()) {
     return NextResponse.json({ error: "Payments are not configured." }, { status: 500 });
   }
 
@@ -87,7 +77,7 @@ export async function POST(req: Request) {
     .slice(2, 8)}`;
 
   try {
-    const checkout = await createCheckoutSession({
+    const checkout = await initializeTransaction({
       email: session.email,
       amountMinor,
       reference,
@@ -97,11 +87,9 @@ export async function POST(req: Request) {
         cap: String(cap),
         isUpgrade: String(isUpgrade),
       },
-      // Bachs refuses localhost/private URLs, so omit when running locally.
-      successUrl: isLocalhost(appUrl())
-        ? undefined
-        : `${appUrl()}/dashboard?ref=${encodeURIComponent(reference)}`,
-      cancelUrl: isLocalhost(appUrl()) ? undefined : `${appUrl()}/dashboard`,
+      // Where Paystack sends the browser after checkout (allowed on localhost
+      // in test mode). The webhook — not this redirect — fulfils the payment.
+      callbackUrl: `${appUrl()}/dashboard?ref=${encodeURIComponent(reference)}`,
     });
 
     // Move DRAFT events to PENDING_PAYMENT so the dashboard reflects intent.

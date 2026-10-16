@@ -24,14 +24,14 @@ export const TIERS: Record<TierId, Tier> = {
     id: "FREE",
     label: "Free",
     minGuests: 1,
-    maxGuests: 30,
+    maxGuests: 75, // temporarily 75 while payments are pending approval
     basePriceMinor: 0,
     branded: true,
   },
   CLASSIC: {
     id: "CLASSIC",
     label: "Classic",
-    minGuests: 31,
+    minGuests: 76,
     maxGuests: 100,
     basePriceMinor: 2_499_000, // ₦24,990
     branded: false,

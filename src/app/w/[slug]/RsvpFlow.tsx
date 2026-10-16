@@ -2,10 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
+import { PromisePicker } from "@/components/PromisePicker";
 
 type Step = "choose" | "form" | "done";
 
-export function RsvpFlow({ slug, full, test = false }: { slug: string; full: boolean; test?: boolean }) {
+export function RsvpFlow({
+  slug,
+  full,
+  test = false,
+  couple,
+}: {
+  slug: string;
+  full: boolean;
+  test?: boolean;
+  couple: { groomName: string; brideName: string };
+}) {
   const [step, setStep] = useState<Step>("choose");
   const [side, setSide] = useState<"GROOM" | "BRIDE">("GROOM");
 
@@ -14,14 +25,14 @@ export function RsvpFlow({ slug, full, test = false }: { slug: string; full: boo
     document.documentElement.setAttribute("data-av-ready", "1");
     // Load Turnstile script once if configured.
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-    if (!siteKey) return;
-    if (document.querySelector("script[data-av-turnstile]")) return;
-    const s = document.createElement("script");
-    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    s.async = true;
-    s.defer = true;
-    s.setAttribute("data-av-turnstile", "1");
-    document.head.appendChild(s);
+    if (siteKey && !document.querySelector("script[data-av-turnstile]")) {
+      const s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true;
+      s.defer = true;
+      s.setAttribute("data-av-turnstile", "1");
+      document.head.appendChild(s);
+    }
   }, []);
 
   if (full) {
@@ -76,7 +87,7 @@ export function RsvpFlow({ slug, full, test = false }: { slug: string; full: boo
         </m.div>
       )}
 
-      {step === "done" && <Celebration test={test} />}
+      {step === "done" && <Celebration test={test} couple={couple} slug={slug} />}
     </LazyMotion>
   );
 }
@@ -108,6 +119,14 @@ function RsvpForm({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    (window as unknown as Record<string, unknown>).onAvTurnstileToken = (t: string) =>
+      setTurnstileToken(t);
+    return () => {
+      delete (window as unknown as Record<string, unknown>).onAvTurnstileToken;
+    };
+  }, []);
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -118,7 +137,7 @@ function RsvpForm({
         const fakeCode = `${side === "GROOM" ? "G" : "B"}-TEST-${String(Math.floor(Math.random() * 900) + 100)}`;
         window.sessionStorage.setItem(
           "av.pass",
-          JSON.stringify({ guestCode: fakeCode, publicToken: "", test: true }),
+          JSON.stringify({ guestCode: fakeCode, publicToken: "", test: true, slug }),
         );
         setBusy(false);
         onDone();
@@ -147,7 +166,7 @@ function RsvpForm({
         }
         window.sessionStorage.setItem(
           "av.pass",
-          JSON.stringify({ guestCode: data.guestCode, publicToken: data.publicToken }),
+          JSON.stringify({ guestCode: data.guestCode, publicToken: data.publicToken, slug }),
         );
         onDone();
       } catch {
@@ -214,16 +233,22 @@ function RsvpForm({
   );
 }
 
-function Celebration({ test = false }: { test?: boolean }) {
+function Celebration({
+  test = false,
+  couple,
+  slug,
+}: {
+  test?: boolean;
+  couple: { groomName: string; brideName: string };
+  slug: string;
+}) {
   const [pass, setPass] = useState<{ guestCode: string; publicToken: string } | null>(null);
   const [passUrl, setPassUrl] = useState<string | null>(null);
-  const [slug, setSlug] = useState("");
 
   useEffect(() => {
     try {
       const raw = window.sessionStorage.getItem("av.pass");
       if (raw) setPass(JSON.parse(raw));
-      setSlug(window.location.pathname.split("/")[2] ?? "");
     } catch {
       /* noop */
     }
@@ -320,6 +345,15 @@ function Celebration({ test = false }: { test?: boolean }) {
               )}
             </div>
           </div>
+        )}
+
+        {!test && pass?.publicToken && (
+          <PromisePicker
+            publicToken={pass.publicToken}
+            guestCode={pass.guestCode}
+            groomName={couple.groomName}
+            brideName={couple.brideName}
+          />
         )}
       </m.div>
     </Confetti>
