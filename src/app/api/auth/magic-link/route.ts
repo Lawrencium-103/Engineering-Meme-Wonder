@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createMagicToken, appUrl } from "@/lib/auth";
 import { sendMagicLinkEmail } from "@/lib/email";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 const bodySchema = z.object({ email: z.string().email() });
 
 export async function POST(req: Request) {
+  const ip = clientIp(req);
+  if (!rateLimit(`magic-link:${ip}`, 5, 15 * 60 * 1000).ok) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+  }
   let json: unknown;
   try {
     json = await req.json();

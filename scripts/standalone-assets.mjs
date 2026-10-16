@@ -7,7 +7,7 @@
  * Runs automatically via the npm "postbuild" script (works in the Docker
  * builder stage too, since that runs npm run build).
  */
-import { readdir, mkdir, copyFile, stat } from "node:fs/promises";
+import { readdir, mkdir, copyFile, stat, cp } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
@@ -46,3 +46,27 @@ for (const src of wasmFiles) {
   copied++;
 }
 console.log(`[standalone-assets] copied ${copied} wasm file(s) into .next/standalone`);
+
+// Local parity with the Docker runner: server.js serves .next/static (JS/CSS
+// chunks) and public/ from its own cwd, and `node server.js` inside the
+// standalone dir is exactly how the image runs. Docker's COPY lines provide
+// these in the image; doing it here makes bare-metal standalone boots
+// identical (otherwise every /_next/static/* request 404s — HTML renders
+// but the page never hydrates).
+async function mirrorDir(fromRel, toRel) {
+  const from = path.join(root, fromRel);
+  const to = path.join(outRoot, toRel);
+  try {
+    await stat(from);
+  } catch {
+    return false;
+  }
+  await cp(from, to, { recursive: true, force: true });
+  return true;
+}
+
+const staticOk = await mirrorDir(path.join(".next", "static"), path.join(".next", "static"));
+const publicOk = await mirrorDir("public", "public");
+console.log(
+  `[standalone-assets] mirrored .next/static: ${staticOk}, public: ${publicOk}`,
+);
