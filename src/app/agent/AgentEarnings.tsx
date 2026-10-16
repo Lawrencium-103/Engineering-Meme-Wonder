@@ -69,6 +69,10 @@ export function AgentEarnings() {
           title="2 Epic = 12 points"
           body={`6 × 2 pts. Target smashed: 15% of ₦199,980 = ${formatNaira(29_997_00)} + ${formatNaira(BONUS_MINOR)} bonus = ${formatNaira(69_997_00)} total.`}
         />
+        <Example
+          title="12 Epic = 72 points"
+          body={`72 pts. Target smashed: 15% of ₦1,199,880 = ${formatNaira(17_998_200)} + ${formatNaira(BONUS_MINOR)} bonus = ${formatNaira(21_998_200)} total.`}
+        />
       </div>
       <p className="mt-4 text-xs leading-6 text-rose-champagne/40">
         Why it works like this: 8 free sign-ups plus 2 small paid plans (8 pts) pay less than

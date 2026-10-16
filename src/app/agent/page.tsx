@@ -61,6 +61,27 @@ export default async function AgentPage() {
         </div>
 
         <div className="mt-14 border-t border-white/10 pt-10">
+          <p className="text-gold tracking-[0.35em] text-xs uppercase">The honest pitch</p>
+          <h2 className="mt-2 font-serif text-3xl font-light text-alabaster">
+            Earn from anywhere — no office, no commute
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-rose-champagne/60">
+            Young or old, man or woman — Aravow is a second income that doesn&apos;t
+            require you to go to work. You work from anywhere you are. You work by
+            simply mentioning Aravow in any conversation. When someone books through
+            your code, you get paid for the service rendered.
+          </p>
+          <p className="mt-4 text-sm leading-7 text-rose-champagne/60">
+            No lies, no office, no commute. Just your motivation, your effort, and
+            your reward. The more you share, the more you earn. Prepare your pitch,
+            know your code, and be ready to make it work.
+          </p>
+          <p className="mt-4 text-sm font-medium text-alabaster leading-7">
+            Start now — fill the form below.
+          </p>
+        </div>
+
+        <div className="mt-14 border-t border-white/10 pt-10">
           <h2 className="font-serif text-3xl font-light text-alabaster">Get your agent code</h2>
           <AgentRegisterForm signedInEmail={account?.email ?? null} />
         </div>
